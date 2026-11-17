@@ -15,6 +15,7 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
   try {
     await db.exec('create role anon; create role authenticated; create role service_role bypassrls;');
     await db.exec(schema);
+    await db.exec(await readFile(new URL((await readdir(migrations)).find(name => name.includes('temporary_registration_window')), migrations), 'utf8'));
     await db.exec('set role anon');
     await assert.rejects(db.query('select * from public.pilot_registrations'), /permission denied/);
     await db.exec('set role service_role');
@@ -25,6 +26,9 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     await assert.rejects(reserve(first, 'a@example.com'), /closed/);
     await db.query('update public.pilot_settings set capacity=1, price_cents=1000, regulation=$1, is_open=true', [regulation]);
     await assert.rejects(reserve(first, 'a@example.com', 'Versão anterior'), /rules_changed/);
+    await db.query("update public.pilot_settings set closes_at=now()-interval '1 minute'");
+    await assert.rejects(reserve(first, 'a@example.com'), /closed/);
+    await db.query('update public.pilot_settings set closes_at=null');
     const { rows } = await reserve(first, 'a@example.com');
     assert.equal(rows[0].entry.status, 'pending');
     await reserve(first, 'a@example.com');

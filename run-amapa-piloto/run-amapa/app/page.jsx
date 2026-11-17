@@ -36,6 +36,7 @@ export default async function Page({ searchParams }) {
         <p>Se quiser, dedique seus 5 km a alguém e registre a homenagem na sua inscrição.</p></div>
       <div className="panel">
         {Object.hasOwn(errors, erro) && <p className="notice" role="alert">{errors[erro]}</p>}
+        {open && race.regulation.startsWith('TESTE TEMPORÁRIO') && <p className="notice">Teste do site até 17/11 às 23h59 (Brasília). Valor temporário de R$ 1,00. Esta inscrição não garante vaga no evento.</p>}
         {open ? <form action={register} className="stack">
           <h3>Inscrição individual <small>{money(race.price_cents)}</small></h3>
           <input type="hidden" name="id" value={id} />

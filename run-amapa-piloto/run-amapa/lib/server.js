@@ -39,7 +39,7 @@ export async function settings() {
 }
 
 export function canRegister(race) {
-  return Boolean(race?.is_open && race.regulation && race.price_cents > 0 &&
+  return Boolean(race?.is_open && (!race.closes_at || Date.now() < Date.parse(race.closes_at)) && race.regulation && race.price_cents > 0 &&
     process.env.REGISTRATION_LINK_SECRET?.length >= 32 &&
     process.env.MERCADO_PAGO_ACCESS_TOKEN && process.env.MERCADO_PAGO_WEBHOOK_SECRET);
 }
