@@ -1,0 +1,33 @@
+{
+  "name": "run-amapa",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bruno7gui/run-amapa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/bruno7gui/run-amapa/issues"
+  },
+  "homepage": "https://github.com/bruno7gui/run-amapa#readme",
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "supabase": "3.1.0"
+  },
+  "private": true
+}
