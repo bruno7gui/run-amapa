@@ -109,7 +109,7 @@ function mercadoPago(path, options = {}) {
 }
 
 export async function createOrder(row) {
-  const url = new URL(registrationPath(row.id), site()).href;
+  const url = new URL(registrationPath(row.id) + '&retorno=1', site()).href;
   const amount = (row.price_cents / 100).toFixed(2);
   const order = await mercadoPago('', {
     method: 'POST',
@@ -122,6 +122,9 @@ export async function createOrder(row) {
       config: { online: { success_url: url, failure_url: url, pending_url: url, auto_return: 'all' } },
     }),
   });
+  if (order.live_mode === false || order.id?.startsWith('ORDTST')) {
+    throw Object.assign(new Error('Credenciais de teste'), { code: 'test_credentials' });
+  }
   const checkout = new URL(order.checkout_url);
   if (!/^ORD[A-Za-z0-9]+$/.test(order.id) || checkout.protocol !== 'https:' ||
       !['www.mercadopago.com.br', 'mercadopago.com.br'].includes(checkout.hostname)) {
@@ -167,22 +170,68 @@ export async function reconcile(orderId) {
   if (updated?.status === 'confirmed') await sendConfirmation(updated);
 }
 
+export function emailConfigured() {
+  return Boolean((process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) ||
+    (process.env.RESEND_API_KEY && process.env.CONFIRMATION_FROM));
+}
+
 async function sendConfirmation(row) {
-  if (row.email_sent || !process.env.RESEND_API_KEY || !process.env.CONFIRMATION_FROM) return;
-  const url = new URL(registrationPath(row.id), site()).href;
-  await jsonRequest('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: 'Bearer ' + process.env.RESEND_API_KEY,
-      'Content-Type': 'application/json',
-      'Idempotency-Key': 'confirm-' + row.id,
-    },
-    body: JSON.stringify({
-      from: process.env.CONFIRMATION_FROM, to: [row.email],
-      subject: 'Inscrição confirmada | ' + title,
-      text: title + '\n11/04/2027 · Macapá (AP) · 5 km\nPagamento confirmado: ' +
-        money(row.price_cents) + '\nAcompanhe sua inscrição: ' + url,
-    }),
+  if (row.email_sent || !emailConfigured()) return;
+  const claimed = await db('rpc/pilot_claim_confirmation', {
+    method: 'POST', body: { registration_id: row.id },
   });
-  await db('pilot_registrations?id=eq.' + row.id, { method: 'PATCH', body: { email_sent: true } });
+  if (!claimed) return;
+  const url = new URL(registrationPath(row.id), site()).href;
+  const email = {
+    to: row.email,
+    subject: 'Inscrição confirmada | ' + title,
+    text: [
+      'Olá, ' + row.name + '!',
+      'Sua inscrição na ' + title + ' está confirmada.',
+      'Data: 11/04/2027 · Percurso: 5 km',
+      'Local: Residencial Parque Irmãos Platon, Macapá (AP)',
+      'Participante: ' + row.name,
+      'Camisa: ' + row.shirt,
+      'Pagamento confirmado: ' + money(row.price_cents),
+      'Código da inscrição: ' + row.id,
+      'Acompanhe sua inscrição: ' + url,
+      'Guarde este e-mail e o link para consultar sua inscrição.',
+    ].join('\n\n'),
+  };
+  try {
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      const { default: nodemailer } = await import('nodemailer');
+      const transport = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+        connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 10000,
+      });
+      const sent = await transport.sendMail({
+        ...email,
+        from: { name: 'Corrida dos Guimarães', address: process.env.GMAIL_USER },
+        messageId: '<inscricao-' + row.id + '@' + new URL(site()).hostname + '>',
+        disableFileAccess: true, disableUrlAccess: true,
+      });
+      if (!sent.accepted?.length) throw new Error('O provedor recusou o e-mail');
+    } else {
+      const sent = await jsonRequest('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + process.env.RESEND_API_KEY,
+          'Content-Type': 'application/json',
+          'Idempotency-Key': 'confirm-' + row.id,
+        },
+        body: JSON.stringify({ ...email, from: process.env.CONFIRMATION_FROM, to: [row.email] }),
+      });
+      if (!sent?.id) throw new Error('O provedor não confirmou o envio');
+    }
+    await db('pilot_registrations?id=eq.' + row.id, {
+      method: 'PATCH', body: { email_sent: true, confirmation_claimed_at: null },
+    });
+  } catch (error) {
+    await db('pilot_registrations?id=eq.' + row.id, {
+      method: 'PATCH', body: { confirmation_claimed_at: null },
+    });
+    throw error;
+  }
 }

@@ -44,9 +44,12 @@ export async function pay(form) {
   try {
     const row = await db('rpc/pilot_begin_checkout', { method: 'POST', body: { registration_id: id } });
     if (!row || !process.env.MERCADO_PAGO_ACCESS_TOKEN) throw new Error('Checkout indisponível');
+    if (row.order_id?.startsWith('ORDTST')) {
+      throw Object.assign(new Error('Pedido de teste'), { code: 'test_credentials' });
+    }
     url = row.checkout_url || await createOrder(row);
-  } catch {
-    redirect(registrationPath(id) + '&erro=1');
+  } catch (error) {
+    redirect(registrationPath(id) + '&erro=' + (error.code === 'test_credentials' ? 'ambiente' : '1'));
   }
   redirect(url);
 }

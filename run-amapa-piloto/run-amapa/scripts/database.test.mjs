@@ -15,7 +15,9 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
   try {
     await db.exec('create role anon; create role authenticated; create role service_role bypassrls;');
     await db.exec(schema);
-    await db.exec(await readFile(new URL((await readdir(migrations)).find(name => name.includes('temporary_registration_window')), migrations), 'utf8'));
+    for (const name of (await readdir(migrations)).sort().slice(1)) {
+      await db.exec(await readFile(new URL(name, migrations), 'utf8'));
+    }
     await db.exec('set role anon');
     await assert.rejects(db.query('select * from public.pilot_registrations'), /permission denied/);
     await db.exec('set role service_role');
@@ -40,6 +42,18 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     )).rows[0].entry;
     assert.equal((await update('ORDTESTA', 'confirmed')).status, 'confirmed');
     assert.equal((await update('ORDTESTA', 'confirmed')).status, 'confirmed');
+    const claimCheck = async () => (await db.query(
+      'select public.pilot_claim_payment_check($1) as claimed', [first],
+    )).rows[0].claimed;
+    assert.equal(await claimCheck(), true);
+    assert.equal(await claimCheck(), false);
+    const claimEmail = async () => (await db.query(
+      'select public.pilot_claim_confirmation($1) as claimed', [first],
+    )).rows[0].claimed;
+    assert.equal(await claimEmail(), true);
+    assert.equal(await claimEmail(), false);
+    await db.query('update public.pilot_registrations set email_sent=true where id=$1', [first]);
+    assert.equal(await claimEmail(), false);
     assert.equal(await update('ORDTESTB', 'refunded'), null);
     assert.equal((await update('ORDTESTA', 'refunded')).status, 'refunded');
     assert.equal(await update('ORDTESTA', 'confirmed'), null);

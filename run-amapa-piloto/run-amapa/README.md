@@ -26,3 +26,13 @@ npm run build
 ```
 
 Os testes usam PostgreSQL local em memória. A migração online e os serviços externos devem ser verificados no ambiente de teste.
+
+## Confirmação automática e operação normal
+
+O checkout retorna ao link assinado da inscrição. A página consulta o status real do pedido a cada 15 segundos durante até cinco minutos, com limite de consultas também no banco. O webhook continua confirmando pagamentos quando o atleta fecha a página. O status confirmado exibe participante, camisa, valor e código da inscrição.
+
+Para cobranças reais, configure no Netlify o Access Token **de produção** da aplicação Checkout Pro Orders em MERCADO_PAGO_ACCESS_TOKEN e o segredo do webhook **de produção** em MERCADO_PAGO_WEBHOOK_SECRET. Use o destino /api/mercado-pago. O site recusa novos checkouts de teste na operação normal. Cadastros anteriores mantêm seus valores e pedidos originais.
+
+Para confirmar inscrições por Gmail sem domínio próprio, defina GMAIL_USER e GMAIL_APP_PASSWORD no Netlify. A senha é uma senha de aplicativo gerada na Conta Google com verificação em duas etapas, e deve ser colocada diretamente no painel. Não é a senha normal do Gmail. Faça um novo deploy após configurar. Como alternativa, RESEND_API_KEY e CONFIRMATION_FROM continuam disponíveis para um domínio verificado no Resend.
+
+O envio é disparado após confirmação do pagamento. O painel identifica confirmações pendentes. A sincronização do pagamento tenta novamente o e-mail pendente. O registro de envio indica aceitação pelo serviço de e-mail e não comprova entrega na caixa de entrada.
