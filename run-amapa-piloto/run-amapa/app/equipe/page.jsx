@@ -1,5 +1,6 @@
 import { admin, db, emailConfigured, settings } from '../../lib/server';
 import { editKit, refreshPayment, saveSettings, signIn, signOut } from '../actions';
+import { categories, sexes, formatCpf, formatPhone } from '../../lib/registration';
 import { labels, money } from '../../lib/race';
 
 export default async function Team({ searchParams }) {
@@ -20,7 +21,7 @@ export default async function Team({ searchParams }) {
   const query = state ? '&status=eq.' + state : '';
   const [race, rows] = await Promise.all([
     settings(),
-    db('pilot_registrations?select=id,name,email,shirt,status,kit_at,order_id,price_cents,checkout_started,email_sent&order=created_at.desc,id.desc&limit=51&offset=' + ((page - 1) * 50) + query),
+    db('pilot_registrations?select=id,name,email,birth_date,cpf,phone,sex,category,dedication,terms_accepted_at,shirt,status,kit_at,order_id,price_cents,checkout_started,email_sent&order=created_at.desc,id.desc&limit=51&offset=' + ((page - 1) * 50) + query),
   ]);
 
   return <section className="wrap section stack">
@@ -50,7 +51,17 @@ export default async function Team({ searchParams }) {
       {rows.length ? <div className="table-scroll"><table>
         <thead><tr><th>Atleta</th><th>Camisa</th><th>Pagamento</th><th>Kit</th></tr></thead>
         <tbody>{rows.slice(0, 50).map(row => <tr key={row.id}>
-          <td>{row.name}<br/><small>{row.email}</small></td>
+          <td>{row.name}<br/><small>{row.email}</small>
+            <details><summary>Dados do cadastro</summary><dl>
+              <dt>Nascimento</dt><dd>{row.birth_date?.split('-').reverse().join('/') || 'Não informado'}</dd>
+              <dt>CPF</dt><dd>{formatCpf(row.cpf)}</dd>
+              <dt>Celular</dt><dd>{formatPhone(row.phone)}</dd>
+              <dt>Sexo</dt><dd>{sexes[row.sex] || 'Não informado'}</dd>
+              <dt>Categoria</dt><dd>{categories[row.category] || 'Não informada'}</dd>
+              <dt>Seu laço</dt><dd>{row.dedication || 'Não informado'}</dd>
+              <dt>Aceite do termo</dt><dd>{row.terms_accepted_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }).format(new Date(row.terms_accepted_at)) : 'Não registrado nesta versão'}</dd>
+            </dl></details>
+          </td>
           <td>{row.shirt}</td>
           <td>{labels[row.status]} · {money(row.price_cents)}
             {row.status === 'confirmed' && <p><small>{row.email_sent ? 'Confirmação enviada por e-mail' : 'E-mail de confirmação pendente'}</small></p>}

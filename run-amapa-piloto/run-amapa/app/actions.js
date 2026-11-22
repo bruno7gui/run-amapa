@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { admin, authCookie, canRegister, createOrder, db, isId, login, reconcile,
   registrationPath, settings, site, validRegistration } from '../lib/server';
 import { shirts } from '../lib/race';
+import { categories, sexes, normalizeCpf, normalizePhone, validCpf } from '../lib/registration';
 
 const value = (form, field) => String(form.get(field) || '').trim();
 
@@ -20,19 +21,27 @@ export async function register(form) {
   const birthDate = value(form, 'birth_date');
   const dedication = value(form, 'dedication');
   const regulation = value(form, 'regulation');
+  const cpf = normalizeCpf(value(form, 'cpf'));
+  const phone = normalizePhone(value(form, 'phone'));
+  const sex = value(form, 'sex');
+  const category = value(form, 'category');
+  const responsibility = value(form, 'responsibility');
   if (!validRegistration(id, key) || name.length < 3 || name.length > 120 ||
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 ||
-    !validBirthDate(birthDate) || !shirts.includes(shirt) || dedication.length > 100 || form.get('accept') !== 'on') {
+    !validBirthDate(birthDate) || !validCpf(cpf) || !phone || !Object.hasOwn(sexes, sex) ||
+    !Object.hasOwn(categories, category) || !shirts.includes(shirt) || !dedication || dedication.length > 100 ||
+    !responsibility || responsibility.length > 10000 || form.get('accept') !== 'on') {
     redirect('/?erro=dados#inscricao');
   }
   try {
     if (!canRegister(await settings())) throw Object.assign(new Error(), { detail: 'closed' });
-    await db('rpc/pilot_reserve', { method: 'POST', body: {
+    await db('rpc/pilot_reserve_full', { method: 'POST', body: {
       registration_id: id, athlete_name: name, athlete_email: email, shirt_size: shirt,
       dedication_text: dedication, accepted_regulation: regulation, athlete_birth_date: birthDate,
+      athlete_cpf: cpf, athlete_phone: phone, athlete_sex: sex, athlete_category: category, accepted_terms_text: responsibility,
     } });
   } catch (error) {
-    const detail = ['closed', 'rules_changed', 'sold_out', 'duplicate'].includes(error.detail)
+    const detail = ['closed', 'rules_changed', 'sold_out', 'duplicate', 'duplicate_cpf'].includes(error.detail)
       ? error.detail : 'indisponivel';
     redirect('/?erro=' + detail + '#inscricao');
   }

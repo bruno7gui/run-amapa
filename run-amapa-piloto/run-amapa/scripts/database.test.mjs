@@ -86,7 +86,40 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     assert.equal((await lookup('missing@example.com', '1990-01-02', 'b'.repeat(64))).limited, true);
     await db.query("update public.pilot_lookup_limits set window_start=now()-interval '16 minutes'");
     assert.equal(await lookup('missing@example.com'), null);
+    const terms = (await db.query('select responsibility_terms from public.pilot_settings')).rows[0].responsibility_terms;
+    const full = async (cpf = '52998224725', category = 'familia', accepted = terms) => (await db.query(
+      'select public.pilot_reserve_full($1,$2,$3,$4,$5,$6,$7::date,$8,$9,$10,$11,$12) as entry',
+      [second, 'Atleta Teste', 'b@example.com', 'M', 'Minha família', regulation, '1990-01-02', cpf, '96999999999', 'feminino', category, accepted],
+    )).rows[0].entry;
+    await assert.rejects(full('11111111111'), /invalid_details/);
+    await assert.rejects(full('52998224725', 'outra'), /invalid_details/);
+    await assert.rejects(full('52998224725', 'familia', 'Versão anterior'), /rules_changed/);
+    const registered = await full();
+    assert.equal(registered.cpf, '52998224725');
+    assert.equal(registered.phone, '96999999999');
+    assert.equal(registered.sex, 'feminino');
+    assert.equal(registered.category, 'familia');
+    assert.equal(registered.dedication, ''); // Existing registration data is not rewritten on a replay.
+    assert.equal(registered.accepted_terms, terms);
+    assert.ok(registered.terms_accepted_at);
+    assert.equal((await full('52998224725', 'amigos')).category, 'familia');
+    await assert.rejects(db.query(
+      'select public.pilot_reserve_full($1,$2,$3,$4,$5,$6,$7::date,$8,$9,$10,$11,$12)',
+      [first, 'Atleta Teste', 'a@example.com', 'M', 'Minha família', regulation, '1990-01-02', '52998224725', '96999999999', 'masculino', 'amigos', terms],
+    ), /duplicate_cpf/);
+    // A fresh reservation stores all nine fields and the consent atomically.
+    await db.query('update public.pilot_settings set capacity=2');
+    const third = 'b472b5f9-e403-4436-a837-cc519b55d120';
+    const fresh = (await db.query(
+      'select public.pilot_reserve_full($1,$2,$3,$4,$5,$6,$7::date,$8,$9,$10,$11,$12) as entry',
+      [third, 'Outro Atleta', 'c@example.com', 'G', 'Meus amigos', regulation, '1991-03-04', '11144477735', '96988887777', 'nao_informado', 'amigos', terms],
+    )).rows[0].entry;
+    assert.equal(fresh.category, 'amigos');
+    assert.equal(fresh.dedication, 'Meus amigos');
+    assert.equal(fresh.birth_date, '1991-03-04');
+    assert.equal(fresh.accepted_terms, terms);
     await db.exec('set role anon');
+    await assert.rejects(full(), /permission denied/);
     await assert.rejects(lookup('a@example.com'), /permission denied/);
     await assert.rejects(db.query('select * from public.pilot_lookup_limits'), /permission denied/);
     await assert.rejects(db.query('select public.pilot_complete_birth_date($1,$2)', [first, '1990-01-02']), /permission denied/);

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { completeBirthDate, pay } from '../../actions';
 import { db, validRegistration } from '../../../lib/server';
 import { labels, money } from '../../../lib/race';
+import { categories } from '../../../lib/registration';
 import PaymentStatus from './payment-status';
 
 export default async function Status({ params, searchParams }) {
@@ -20,6 +21,8 @@ export default async function Status({ params, searchParams }) {
       {confirmed && <p role="status">Pagamento aprovado. Sua inscrição foi efetivada!</p>}
       <dl>
         <dt>Participante</dt><dd>{row.name}</dd>
+        <dt>Categoria</dt><dd>{categories[row.category] || 'Não informada'}</dd>
+        <dt>Seu laço</dt><dd>{row.dedication || 'Não informado'}</dd>
         <dt>Camisa</dt><dd>{row.shirt}</dd>
         <dt>Valor</dt><dd>{money(row.price_cents)}</dd>
         <dt>Código da inscrição</dt><dd style={{ overflowWrap: 'anywhere' }}>{row.id}</dd>

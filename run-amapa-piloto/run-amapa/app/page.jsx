@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { register } from './actions';
+import { CpfInput, PhoneInput } from './identity-inputs';
+import { categories, sexes } from '../lib/registration';
 import { canRegister, registrationPath, settings } from '../lib/server';
 import { money, shirts } from '../lib/race';
 
@@ -8,9 +10,10 @@ export const dynamic = 'force-dynamic';
 const errors = {
   dados: 'Confira seus dados e aceite o regulamento.',
   closed: 'As inscrições estão fechadas.',
-  rules_changed: 'O regulamento foi atualizado. Leia a nova versão e envie o formulário novamente.',
+  rules_changed: 'O regulamento ou o termo foi atualizado. Leia a nova versão e envie o formulário novamente.',
   sold_out: 'As vagas estão preenchidas ou reservadas no momento.',
   duplicate: 'Já existe uma inscrição ativa com esse e-mail. Use Acompanhar inscrição para recuperar seu link.',
+  duplicate_cpf: 'Já existe uma inscrição ativa com esse CPF. Use Acompanhar inscrição para consultar o cadastro.',
   indisponivel: 'Não foi possível reservar sua vaga. Tente novamente em instantes.',
 };
 
@@ -97,15 +100,32 @@ export default async function Page({ searchParams }) {
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="key" value={registrationPath(id).split('=')[1]} />
           <input type="hidden" name="regulation" value={race.regulation} />
-          <label>Nome completo<input name="name" autoComplete="name" minLength={3} maxLength={120} required /></label>
-          <label>E-mail<input name="email" type="email" autoComplete="email" maxLength={254} required /></label>
+          <input type="hidden" name="responsibility" value={race.responsibility_terms} />
+          <label>Endereço de e-mail<input name="email" type="email" autoComplete="email" maxLength={254} required /></label>
+          <label>Nome Completo<input name="name" autoComplete="name" minLength={3} maxLength={120} required /></label>
           <label>Data de nascimento<input name="birth_date" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} required /><small className="muted">Usaremos sua data de nascimento junto com o e-mail para consultar a inscrição.</small></label>
+          <label>CPF<CpfInput /></label>
+          <label>Celular<PhoneInput /></label>
+          <label>Sexo<select name="sex" defaultValue="" required>
+            <option value="" disabled>Selecione</option>{Object.entries(sexes).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select></label>
+          <label>Categoria<select name="category" defaultValue="" required aria-describedby="category-help">
+            <option value="" disabled>Selecione</option>{Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select></label>
+          <div id="category-help" className="field-help">
+            <p><strong>Família:</strong> membros da família Guimarães, independentemente do sobrenome.</p>
+            <p><strong>Amigos:</strong> amigos, convidados e moradores do Residencial.</p>
+          </div>
           <label>Tamanho da camisa<select name="shirt" defaultValue="" required>
             <option value="" disabled>Selecione</option>{shirts.map(shirt => <option key={shirt}>{shirt}</option>)}
           </select></label>
-          <label>Dedico meus 5 km a… <span className="muted">(opcional)</span><input name="dedication" maxLength={100} /></label>
+          <label>Seu laço — por quem você vai correr esses 5 km?<input name="dedication" maxLength={100} required /></label>
+          <section className="consent-text" aria-labelledby="responsibility-heading">
+            <h3 id="responsibility-heading">Termo de responsabilidade e autorização de imagem</h3>
+            <div className="regulation-text">{race.responsibility_terms}</div>
+          </section>
           <label className="check"><input type="checkbox" name="accept" required />
-            <span>Li e aceito o <a href="#regulamento">regulamento da corrida</a>.</span>
+            <span>Li e concordo com o termo de responsabilidade e autorização de imagem acima e com o <a href="#regulamento">regulamento da 2ª Corrida dos Guimarães</a>.</span>
           </label>
           <button className="button">Reservar minha vaga <span className="shortcut-arrow" aria-hidden="true" /></button>
         </form> : <><h3>Inscrições fechadas</h3><p>A abertura será divulgada pela organização da corrida.</p></>}
@@ -130,7 +150,7 @@ export default async function Page({ searchParams }) {
           <p>Após a aprovação do pagamento pelo Mercado Pago. A página da inscrição é atualizada automaticamente quando a confirmação é recebida.</p>
         </details>
         <details><summary>Como funciona a dedicatória dos 5 km?</summary>
-          <p>O campo é opcional. Você pode informar o nome de alguém a quem deseja dedicar sua corrida.</p>
+          <p>No campo Seu laço, informe por quem você vai correr esses 5 km. Informe a pessoa ou as pessoas a quem deseja dedicar sua corrida.</p>
         </details>
         <details><summary>Onde e quando retiro meu kit?</summary>
           <p>As informações sobre data, horário e local da retirada serão divulgadas pela organização.</p>

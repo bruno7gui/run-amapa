@@ -151,3 +151,10 @@ dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
   .facts > div:last-child { flex-basis:auto; }
 }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .shortcut { transition:none; } }
+
+.field-help { font-size:.8rem; color:var(--muted); line-height:1.6; margin-top:-.5rem; }
+.field-help p + p { margin-top:.35rem; }
+.field-help strong { color:var(--ink); }
+.consent-text { border-block:1px solid var(--line); padding-block:1.25rem; }
+.consent-text h3 { font-size:1rem; margin-bottom:.85rem; }
+.consent-text .regulation-text { font-size:.83rem; line-height:1.8; }

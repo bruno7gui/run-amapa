@@ -1,0 +1,32 @@
+export const sexes = { feminino: 'Feminino', masculino: 'Masculino', nao_informado: 'Prefiro não informar' };
+export const categories = { familia: 'Família', amigos: 'Amigos' };
+
+export function normalizeCpf(value) {
+  return typeof value === 'string' && /^[\d.\-\s]+$/.test(value) ? value.replace(/\D/g, '') : '';
+}
+
+export function validCpf(value) {
+  const cpf = normalizeCpf(value);
+  if (!/^\d{11}$/.test(cpf) || /^(\d)\1{10}$/.test(cpf)) return false;
+  for (let length = 9; length <= 10; length++) {
+    let sum = 0;
+    for (let i = 0; i < length; i++) sum += Number(cpf[i]) * (length + 1 - i);
+    const digit = (sum * 10 % 11) % 10;
+    if (digit !== Number(cpf[length])) return false;
+  }
+  return true;
+}
+
+export function normalizePhone(value) {
+  if (typeof value !== 'string' || !/^[+\d\s().-]+$/.test(value)) return '';
+  let phone = value.replace(/\D/g, '');
+  if (phone.length === 13 && phone.startsWith('55')) phone = phone.slice(2);
+  return /^[1-9]{2}9\d{8}$/.test(phone) ? phone : '';
+}
+
+export function formatCpf(value) {
+  return value?.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4') || 'Não informado';
+}
+export function formatPhone(value) {
+  return value?.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') || 'Não informado';
+}
