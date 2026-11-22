@@ -22,9 +22,9 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     await assert.rejects(db.query('select * from public.pilot_registrations'), /permission denied/);
     await db.exec('set role service_role');
 
-    const reserve = (id, email, rules = regulation) =>
-      db.query('select public.pilot_reserve($1,$2,$3,$4,$5,$6) as entry',
-        [id, 'Atleta Teste', email, 'M', '', rules]);
+    const reserve = (id, email, rules = regulation, birthDate = '1990-01-02') =>
+      db.query('select public.pilot_reserve($1,$2,$3,$4,$5,$6,$7::date) as entry',
+        [id, 'Atleta Teste', email, 'M', '', rules, birthDate]);
     await assert.rejects(reserve(first, 'a@example.com'), /closed/);
     await db.query('update public.pilot_settings set capacity=1, price_cents=1000, regulation=$1, is_open=true', [regulation]);
     await assert.rejects(reserve(first, 'a@example.com', 'Versão anterior'), /rules_changed/);
@@ -64,7 +64,32 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     assert.equal(await claimAccess('unknown@example.com'), null);
     assert.equal((await claimAccess(' B@EXAMPLE.COM ')).id, second);
     assert.equal(await claimAccess('b@example.com'), null);
+    const lookup = async (email, date = '1990-01-02', key = 'a'.repeat(64)) => (await db.query(
+      'select public.pilot_lookup_registration($1,$2::date,$3) as result', [email, date, key],
+    )).rows[0].result;
+    assert.equal((await lookup(' B@EXAMPLE.COM ')).id, second);
+    assert.equal(await lookup('b@example.com', '1990-01-03'), null);
+    assert.equal(await lookup('unknown@example.com'), null);
+    // Replays cannot overwrite a previously saved birth date.
+    await reserve(second, 'b@example.com', regulation, '1980-02-03');
+    assert.equal((await lookup('b@example.com')).id, second);
+    assert.equal(await lookup('b@example.com', '1980-02-03'), null);
+    await assert.rejects(reserve(second, 'b@example.com', regulation, '2999-01-01'), /birth_date/);
+    await assert.rejects(reserve(second, 'b@example.com', regulation, null), /birth_date/);
+    // Older entries require possession of the existing signed link to complete their date.
+    await db.query('update public.pilot_registrations set birth_date=null where id=$1', [first]);
+    assert.equal(await lookup('a@example.com'), null);
+    await db.query('select public.pilot_complete_birth_date($1,$2)', [first, '1990-01-02']);
+    await db.query('select public.pilot_complete_birth_date($1,$2)', [first, '1980-01-02']);
+    assert.equal((await lookup('a@example.com')).id, first);
+    for (let attempt = 0; attempt < 10; attempt++) await lookup('missing@example.com');
+    assert.equal((await lookup('missing@example.com', '1990-01-02', 'b'.repeat(64))).limited, true);
+    await db.query("update public.pilot_lookup_limits set window_start=now()-interval '16 minutes'");
+    assert.equal(await lookup('missing@example.com'), null);
     await db.exec('set role anon');
+    await assert.rejects(lookup('a@example.com'), /permission denied/);
+    await assert.rejects(db.query('select * from public.pilot_lookup_limits'), /permission denied/);
+    await assert.rejects(db.query('select public.pilot_complete_birth_date($1,$2)', [first, '1990-01-02']), /permission denied/);
     await assert.rejects(claimAccess('a@example.com'), /permission denied/);
   } finally { await db.close(); }
 });

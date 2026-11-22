@@ -41,7 +41,7 @@ export default async function Page({ searchParams }) {
             <h1><span className="title-intro">Corrida dos</span>Guimarães</h1>
             <p className="theme">Laços que nos movem</p>
           </div>
-          <span className="emblem emblem-hero" role="img" aria-label="Logo da 2ª Corrida dos Guimarães" />
+          <img className="emblem emblem-hero" src="/images/logo-oficial.webp" width="1254" height="1254" alt="Logo oficial da 2ª Corrida dos Guimarães" fetchPriority="high" />
         </div>
         <div className="facts">
           <div><span>Distância</span><strong>5 km</strong></div>
@@ -100,6 +100,7 @@ export default async function Page({ searchParams }) {
           <input type="hidden" name="regulation" value={race.regulation} />
           <label>Nome completo<input name="name" autoComplete="name" minLength={3} maxLength={120} required /></label>
           <label>E-mail<input name="email" type="email" autoComplete="email" maxLength={254} required /></label>
+          <label>Data de nascimento<input name="birth_date" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} required /><small className="muted">Usaremos sua data de nascimento junto com o e-mail para consultar a inscrição.</small></label>
           <label>Tamanho da camisa<select name="shirt" defaultValue="" required>
             <option value="" disabled>Selecione</option>{shirts.map(shirt => <option key={shirt}>{shirt}</option>)}
           </select></label>
@@ -124,7 +125,7 @@ export default async function Page({ searchParams }) {
       <div className="section-heading"><p className="eyebrow">Tudo pronto para correr?</p><h2>Dúvidas frequentes</h2></div>
       <div className="faq-list">
         <details><summary>Como acompanho minha inscrição?</summary>
-          <p>Use <a href="/acompanhar">Acompanhar inscrição</a> para receber seu link por e-mail ou abrir o link que você guardou após o cadastro.</p>
+          <p>Use <a href="/acompanhar">Acompanhar inscrição</a> e informe o e-mail e a data de nascimento usados no cadastro. Você também pode abrir o link que guardou após a inscrição.</p>
         </details>
         <details><summary>Quando minha inscrição é confirmada?</summary>
           <p>Após a aprovação do pagamento pelo Mercado Pago. A página da inscrição é atualizada automaticamente quando a confirmação é recebida.</p>

@@ -1,10 +1,12 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { createHmac } from 'node:crypto';
+import { validBirthDate } from '../lib/birth-date';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { admin, authCookie, canRegister, createOrder, db, isId, login, reconcile,
-  registrationPath, sendAccessLink, settings, site, validRegistration } from '../lib/server';
+  registrationPath, settings, site, validRegistration } from '../lib/server';
 import { shirts } from '../lib/race';
 
 const value = (form, field) => String(form.get(field) || '').trim();
@@ -15,18 +17,19 @@ export async function register(form) {
   const name = value(form, 'name');
   const email = value(form, 'email').toLowerCase();
   const shirt = value(form, 'shirt');
+  const birthDate = value(form, 'birth_date');
   const dedication = value(form, 'dedication');
   const regulation = value(form, 'regulation');
   if (!validRegistration(id, key) || name.length < 3 || name.length > 120 ||
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 ||
-    !shirts.includes(shirt) || dedication.length > 100 || form.get('accept') !== 'on') {
+    !validBirthDate(birthDate) || !shirts.includes(shirt) || dedication.length > 100 || form.get('accept') !== 'on') {
     redirect('/?erro=dados#inscricao');
   }
   try {
     if (!canRegister(await settings())) throw Object.assign(new Error(), { detail: 'closed' });
     await db('rpc/pilot_reserve', { method: 'POST', body: {
       registration_id: id, athlete_name: name, athlete_email: email, shirt_size: shirt,
-      dedication_text: dedication, accepted_regulation: regulation,
+      dedication_text: dedication, accepted_regulation: regulation, athlete_birth_date: birthDate,
     } });
   } catch (error) {
     const detail = ['closed', 'rules_changed', 'sold_out', 'duplicate'].includes(error.detail)
@@ -114,17 +117,44 @@ export async function refreshPayment(form) {
   revalidatePath('/equipe');
 }
 
-export async function recoverRegistration(form) {
+export async function lookupRegistration(form) {
   const email = value(form, 'email').toLowerCase();
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    redirect('/acompanhar?erro=email');
+  const birthDate = value(form, 'birth_date');
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !validBirthDate(birthDate)) {
+    redirect('/acompanhar?erro=dados');
   }
+  let id;
   try {
-    await sendAccessLink(email);
-  } catch {
-    redirect('/acompanhar?erro=envio');
+    const requestHeaders = await headers();
+    const address = requestHeaders.get('x-nf-client-connection-ip') || 'unidentified';
+    const key = createHmac('sha256', process.env.REGISTRATION_LINK_SECRET).update(address).digest('hex');
+    const result = await db('rpc/pilot_lookup_registration', {
+      method: 'POST', body: { athlete_email: email, athlete_birth_date: birthDate, request_key: key },
+    });
+    if (result?.limited) throw Object.assign(new Error(), { detail: 'limited' });
+    id = result?.id;
+  } catch (error) {
+    redirect('/acompanhar?erro=' + (error.detail === 'limited' ? 'limite' : 'indisponivel'));
   }
-  redirect('/acompanhar?enviado=1');
+  if (!id) redirect('/acompanhar?erro=consulta');
+  redirect(registrationPath(id));
+}
+
+export async function completeBirthDate(form) {
+  const id = value(form, 'id');
+  const key = value(form, 'key');
+  const birthDate = value(form, 'birth_date');
+  if (!validRegistration(id, key)) redirect('/acompanhar');
+  if (!validBirthDate(birthDate)) redirect(registrationPath(id) + '&erro=nascimento');
+  try {
+    await db('rpc/pilot_complete_birth_date', {
+      method: 'POST', body: { registration_id: id, athlete_birth_date: birthDate },
+    });
+  } catch {
+    redirect(registrationPath(id) + '&erro=nascimento');
+  }
+  revalidatePath('/inscricao/' + id);
+  redirect(registrationPath(id));
 }
 
 export async function openRegistration(form) {

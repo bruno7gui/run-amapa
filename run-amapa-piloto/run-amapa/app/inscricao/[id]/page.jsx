@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { pay } from '../../actions';
+import { completeBirthDate, pay } from '../../actions';
 import { db, validRegistration } from '../../../lib/server';
 import { labels, money } from '../../../lib/race';
 import PaymentStatus from './payment-status';
@@ -29,7 +29,7 @@ export default async function Status({ params, searchParams }) {
         {row.email_sent && <p>O e-mail de confirmação foi enviado para {row.email}. Confira também a pasta de spam.</p>}
         <p>Guarde o endereço desta página como comprovante da sua inscrição.</p>
       </>}
-      {erro && <p className="notice" role="alert">{erro === 'ambiente'
+      {erro && <p className="notice" role="alert">{erro === 'nascimento' ? 'Não foi possível salvar a data de nascimento. Confira o dado e tente novamente.' : erro === 'ambiente'
         ? 'O pagamento real aguarda a ativação pela organização. Se esta inscrição foi criada no teste, faça uma nova inscrição após a ativação.'
         : 'Não foi possível abrir o checkout. Tente novamente ou fale com a organização.'}</p>}
       {row.status === 'pending' && !expired && <>
@@ -42,6 +42,13 @@ export default async function Status({ params, searchParams }) {
       </>}
       {row.order_id && (row.status === 'pending' || (confirmed && !row.email_sent)) &&
         <PaymentStatus id={id} accessKey={chave} initialStatus={row.status} emailSent={row.email_sent} />}
+      {!row.birth_date && <form action={completeBirthDate} className="stack lookup-divider">
+        <h3>Complete seu cadastro</h3>
+        <p>Adicione sua data de nascimento para consultar a inscrição com e-mail e data de nascimento nas próximas visitas.</p>
+        <input type="hidden" name="id" value={id} /><input type="hidden" name="key" value={chave} />
+        <label>Data de nascimento<input type="date" name="birth_date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} required /></label>
+        <button className="button">Salvar data de nascimento</button>
+      </form>}
       <a href="/">Voltar para a corrida</a>
     </div>
   </section>;

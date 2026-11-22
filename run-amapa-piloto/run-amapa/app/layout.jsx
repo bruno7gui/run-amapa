@@ -15,7 +15,7 @@ export default function Layout({ children }) {
     <a className="skip-link" href="#conteudo">Ir para o conteúdo</a>
     <header className="top"><div className="wrap top-inner">
       <a className="brand" href="/" aria-label="Corrida dos Guimarães, início">
-        <span className="emblem emblem-small" aria-hidden="true" />
+        <img className="emblem emblem-small" src="/images/logo-oficial.webp" width="1254" height="1254" alt="" />
         <span>CORRIDA DOS <strong>GUIMARÃES</strong></span>
       </a>
       <nav className="header-links" aria-label="Navegação">
