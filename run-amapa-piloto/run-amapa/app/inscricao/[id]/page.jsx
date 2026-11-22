@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { completeBirthDate, pay } from '../../actions';
 import { db, validRegistration } from '../../../lib/server';
-import { labels, money } from '../../../lib/race';
+import { labels, money, raceDate } from '../../../lib/race';
 import { categories } from '../../../lib/registration';
 import PaymentStatus from './payment-status';
 
@@ -28,7 +28,7 @@ export default async function Status({ params, searchParams }) {
         <dt>Código da inscrição</dt><dd style={{ overflowWrap: 'anywhere' }}>{row.id}</dd>
       </dl>
       {confirmed && <>
-        <p>11 de abril de 2027 · 5 km · Residencial Parque Irmãos Platon, Macapá (AP).</p>
+        <p>{raceDate.note}: {raceDate.label} · 5 km · Residencial Parque Irmãos Platon, Macapá (AP).</p>
         {row.email_sent && <p>O e-mail de confirmação foi enviado para {row.email}. Confira também a pasta de spam.</p>}
         <p>Guarde o endereço desta página como comprovante da sua inscrição.</p>
       </>}

@@ -1,5 +1,7 @@
 # Run Amapá · 2ª Corrida dos Guimarães
 
+Data prevista atualizada em 22/11/2026: **14 de março de 2027**, sujeita à confirmação pela organização. Substitui a previsão anterior de 11 de abril. A data exibida no site e nas novas confirmações está centralizada em `lib/race.js`.
+
 Piloto de um único evento em Next.js, Supabase e Checkout Pro com Orders. A conta recebedora é a da organização desta corrida. O formulário aceita inscrição individual sem login e disponibiliza um link de acompanhamento. A área da equipe permite definir vagas, preço e regulamento, acompanhar pagamentos, exportar CSV e marcar a entrega de kits.
 
 ## Implantação de teste

@@ -1,7 +1,7 @@
 import 'server-only';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { title, money } from './race';
+import { title, money, raceDate } from './race';
 
 const base = () => process.env.NEXT_PUBLIC_SUPABASE_URL;
 const publicKey = () => process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -188,7 +188,7 @@ async function sendConfirmation(row) {
     text: [
       'Olá, ' + row.name + '!',
       'Sua inscrição na ' + title + ' está confirmada.',
-      'Data: 11/04/2027 · Percurso: 5 km',
+      raceDate.note + ': ' + raceDate.numeric + ' · Percurso: 5 km',
       'Local: Residencial Parque Irmãos Platon, Macapá (AP)',
       'Participante: ' + row.name,
       'Camisa: ' + row.shirt,

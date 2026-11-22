@@ -3,7 +3,7 @@ import { register } from './actions';
 import { CpfInput, PhoneInput } from './identity-inputs';
 import { categories, sexes } from '../lib/registration';
 import { canRegister, registrationPath, settings } from '../lib/server';
-import { money, shirts } from '../lib/race';
+import { money, shirts, raceDate } from '../lib/race';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +40,7 @@ export default async function Page({ searchParams }) {
       <div className="wrap hero-inner">
         <div className="hero-heading">
           <div>
-            <p className="eyebrow">2ª edição · 11 de abril de 2027</p>
+            <p className="eyebrow">2ª edição · {raceDate.label} · data prevista</p>
             <h1><span className="title-intro">Corrida dos</span>Guimarães</h1>
             <p className="theme">Laços que nos movem</p>
           </div>
@@ -67,7 +67,7 @@ export default async function Page({ searchParams }) {
       </div>
       <div className="stack about-copy">
         <p>A Corrida dos Guimarães chega à segunda edição celebrando a família, a união e as pessoas que nos inspiram a seguir em frente.</p>
-        <p>Em 11 de abril de 2027, nossos laços ganham movimento em um percurso de 5 km no Residencial Parque Irmãos Platon, em Macapá.</p>
+        <p>Com data prevista para {raceDate.label}, nossos laços ganham movimento em um percurso de 5 km no Residencial Parque Irmãos Platon, em Macapá.</p>
         <div className="dedication">
           <h3>Por quem você vai correr?</h3>
           <p>Na inscrição, você pode dedicar seus 5 km a alguém especial.</p>

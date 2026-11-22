@@ -4,10 +4,11 @@ import '@fontsource/montserrat/latin-600.css';
 import '@fontsource/montserrat/latin-700.css';
 import '@fontsource/montserrat/latin-800.css';
 import './style.css';
+import { raceDate } from '../lib/race';
 
 export const metadata = {
   title: '2ª Corrida dos Guimarães | Run Amapá',
-  description: 'Laços que nos movem. Corrida de rua de 5 km em Macapá, no dia 11 de abril de 2027.',
+  description: `Laços que nos movem. Corrida de rua de 5 km em Macapá. ${raceDate.note}: ${raceDate.label}.`,
 };
 
 export default function Layout({ children }) {
