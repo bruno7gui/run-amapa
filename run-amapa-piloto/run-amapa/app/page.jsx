@@ -43,6 +43,12 @@ export default async function Page({ searchParams }) {
           </div>
           <img className="emblem emblem-hero" src="/images/logo-oficial.webp" width="1254" height="1254" alt="Logo oficial da 2ª Corrida dos Guimarães" fetchPriority="high" />
         </div>
+        <nav className="shortcuts" aria-label="Acessos da corrida">
+          {shortcuts.map(item => <a key={item.href}
+            className={'shortcut' + (item.primary ? ' shortcut-primary' : '')} href={item.href}>
+            <span>{item.label}</span><span className="shortcut-arrow" aria-hidden="true" />
+          </a>)}
+        </nav>
         <div className="facts">
           <div><span>Distância</span><strong>5 km</strong></div>
           <div><span>Cidade</span><strong>Macapá · AP</strong></div>
@@ -50,13 +56,6 @@ export default async function Page({ searchParams }) {
         </div>
       </div>
     </section>
-
-    <nav className="wrap shortcuts" aria-label="Acessos da corrida">
-      {shortcuts.map(item => <a key={item.href}
-        className={'shortcut' + (item.primary ? ' shortcut-primary' : '')} href={item.href}>
-        <span>{item.label}</span><span className="shortcut-arrow" aria-hidden="true">↗</span>
-      </a>)}
-    </nav>
 
     <section id="sobre" className="wrap section about-grid">
       <div>
