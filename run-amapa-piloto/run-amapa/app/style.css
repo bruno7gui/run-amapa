@@ -158,3 +158,5 @@ dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
 .consent-text { border-block:1px solid var(--line); padding-block:1.25rem; }
 .consent-text h3 { font-size:1rem; margin-bottom:.85rem; }
 .consent-text .regulation-text { font-size:.83rem; line-height:1.8; }
+
+input:disabled { opacity:.5; cursor:not-allowed; }

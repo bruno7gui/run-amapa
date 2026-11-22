@@ -112,10 +112,11 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     const third = 'b472b5f9-e403-4436-a837-cc519b55d120';
     const fresh = (await db.query(
       'select public.pilot_reserve_full($1,$2,$3,$4,$5,$6,$7::date,$8,$9,$10,$11,$12) as entry',
-      [third, 'Outro Atleta', 'c@example.com', 'G', 'Meus amigos', regulation, '1991-03-04', '11144477735', '96988887777', 'nao_informado', 'amigos', terms],
+      [third, 'Outro Atleta', 'c@example.com', 'XXG', 'Prefiro não informar ou não vou correr por ninguém.', regulation, '1991-03-04', '11144477735', '96988887777', 'nao_informado', 'amigos', terms],
     )).rows[0].entry;
     assert.equal(fresh.category, 'amigos');
-    assert.equal(fresh.dedication, 'Meus amigos');
+    assert.equal(fresh.dedication, 'Prefiro não informar ou não vou correr por ninguém.');
+    assert.equal(fresh.shirt, 'XXG');
     assert.equal(fresh.birth_date, '1991-03-04');
     assert.equal(fresh.accepted_terms, terms);
     await db.exec('set role anon');

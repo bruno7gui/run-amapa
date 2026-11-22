@@ -1,6 +1,6 @@
 export const raceDate = { label: '14 de março de 2027', numeric: '14/03/2027', note: 'Data prevista, sujeita à confirmação' };
 export const title = '2ª Corrida dos Guimarães';
-export const shirts = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
+export const shirts = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'XXG'];
 export const labels = {
   pending: 'Aguardando pagamento',
   confirmed: 'Inscrição confirmada',

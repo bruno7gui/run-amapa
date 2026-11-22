@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { admin, authCookie, canRegister, createOrder, db, isId, login, reconcile,
   registrationPath, settings, site, validRegistration } from '../lib/server';
 import { shirts } from '../lib/race';
-import { categories, sexes, normalizeCpf, normalizePhone, validCpf } from '../lib/registration';
+import { categories, sexes, normalizeCpf, normalizePhone, validCpf, dedicationValue } from '../lib/registration';
 
 const value = (form, field) => String(form.get(field) || '').trim();
 
@@ -19,7 +19,7 @@ export async function register(form) {
   const email = value(form, 'email').toLowerCase();
   const shirt = value(form, 'shirt');
   const birthDate = value(form, 'birth_date');
-  const dedication = value(form, 'dedication');
+  const dedication = dedicationValue(value(form, 'dedication'), value(form, 'dedication_opt_out'));
   const regulation = value(form, 'regulation');
   const cpf = normalizeCpf(value(form, 'cpf'));
   const phone = normalizePhone(value(form, 'phone'));

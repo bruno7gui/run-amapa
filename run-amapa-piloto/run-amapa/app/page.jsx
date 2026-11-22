@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { register } from './actions';
+import DedicationField from './dedication-field';
 import { CpfInput, PhoneInput } from './identity-inputs';
 import { categories, sexes } from '../lib/registration';
 import { canRegister, registrationPath, settings } from '../lib/server';
@@ -119,7 +120,7 @@ export default async function Page({ searchParams }) {
           <label>Tamanho da camisa<select name="shirt" defaultValue="" required>
             <option value="" disabled>Selecione</option>{shirts.map(shirt => <option key={shirt}>{shirt}</option>)}
           </select></label>
-          <label>Seu laço — por quem você vai correr esses 5 km?<input name="dedication" maxLength={100} required /></label>
+          <DedicationField />
           <section className="consent-text" aria-labelledby="responsibility-heading">
             <h3 id="responsibility-heading">Termo de responsabilidade e autorização de imagem</h3>
             <div className="regulation-text">{race.responsibility_terms}</div>
@@ -150,7 +151,7 @@ export default async function Page({ searchParams }) {
           <p>Após a aprovação do pagamento pelo Mercado Pago. A página da inscrição é atualizada automaticamente quando a confirmação é recebida.</p>
         </details>
         <details><summary>Como funciona a dedicatória dos 5 km?</summary>
-          <p>No campo Seu laço, informe por quem você vai correr esses 5 km. Informe a pessoa ou as pessoas a quem deseja dedicar sua corrida.</p>
+          <p>No campo Seu laço, informe por quem você vai correr esses 5 km. Informe a pessoa ou as pessoas a quem deseja dedicar sua corrida. Se preferir não informar ou não for correr por ninguém, marque a opção correspondente.</p>
         </details>
         <details><summary>Onde e quando retiro meu kit?</summary>
           <p>As informações sobre data, horário e local da retirada serão divulgadas pela organização.</p>
