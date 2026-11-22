@@ -58,5 +58,13 @@ test('reserva, limite de vagas, pagamento, estorno e isolamento por função', a
     assert.equal((await update('ORDTESTA', 'refunded')).status, 'refunded');
     assert.equal(await update('ORDTESTA', 'confirmed'), null);
     assert.equal((await reserve(second, 'b@example.com')).rows[0].entry.status, 'pending');
+    const claimAccess = async email => (await db.query(
+      'select public.pilot_claim_access_link($1) as entry', [email],
+    )).rows[0].entry;
+    assert.equal(await claimAccess('unknown@example.com'), null);
+    assert.equal((await claimAccess(' B@EXAMPLE.COM ')).id, second);
+    assert.equal(await claimAccess('b@example.com'), null);
+    await db.exec('set role anon');
+    await assert.rejects(claimAccess('a@example.com'), /permission denied/);
   } finally { await db.close(); }
 });

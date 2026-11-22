@@ -10,37 +10,91 @@ const errors = {
   closed: 'As inscrições estão fechadas.',
   rules_changed: 'O regulamento foi atualizado. Leia a nova versão e envie o formulário novamente.',
   sold_out: 'As vagas estão preenchidas ou reservadas no momento.',
-  duplicate: 'Já existe uma inscrição ativa com esse e-mail. Use o link da inscrição ou fale com a organização.',
+  duplicate: 'Já existe uma inscrição ativa com esse e-mail. Use Acompanhar inscrição para recuperar seu link.',
   indisponivel: 'Não foi possível reservar sua vaga. Tente novamente em instantes.',
 };
+
+const shortcuts = [
+  { label: 'Fazer inscrição', href: '#inscricao', primary: true },
+  { label: 'Acompanhar inscrição', href: '/acompanhar' },
+  { label: 'Sobre a Corrida', href: '#sobre' },
+  { label: 'Percurso', href: '#percurso' },
+  { label: 'Regulamento', href: '#regulamento' },
+  { label: 'Dúvidas frequentes', href: '#duvidas' },
+];
 
 export default async function Page({ searchParams }) {
   const { erro } = await searchParams;
   const race = await settings().catch(() => null);
   const open = canRegister(race);
   const id = open && randomUUID();
+  const closingDate = race?.closes_at && new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'long', timeZone: 'America/Sao_Paulo',
+  }).format(new Date(Date.parse(race.closes_at) - 1));
+
   return <>
-    <section className="hero"><div className="wrap hero-inner">
-      <p className="eyebrow">2ª edição · Macapá, AP</p>
-      <h1>Corrida dos<br />Guimarães<span>.</span></h1>
-      <p className="theme">Laços que nos movem</p>
-      <a className="button" href="#inscricao">{open ? 'Fazer inscrição' : 'Ver inscrições'}</a>
-      <div className="facts">
-        <div><span>Data</span><strong>11 de abril de 2027</strong></div>
-        <div><span>Percurso</span><strong>5 km</strong></div>
-        <div><span>Local</span><strong>Res. Parque Irmãos Platon</strong></div>
+    <section className="hero">
+      <div className="wrap hero-inner">
+        <div className="hero-heading">
+          <div>
+            <p className="eyebrow">2ª edição · 11 de abril de 2027</p>
+            <h1><span className="title-intro">Corrida dos</span>Guimarães</h1>
+            <p className="theme">Laços que nos movem</p>
+          </div>
+          <span className="emblem emblem-hero" role="img" aria-label="Logo da 2ª Corrida dos Guimarães" />
+        </div>
+        <div className="facts">
+          <div><span>Distância</span><strong>5 km</strong></div>
+          <div><span>Cidade</span><strong>Macapá · AP</strong></div>
+          <div><span>Local</span><strong>Residencial Parque Irmãos Platon</strong></div>
+        </div>
       </div>
-    </div></section>
+    </section>
+
+    <nav className="wrap shortcuts" aria-label="Acessos da corrida">
+      {shortcuts.map(item => <a key={item.href}
+        className={'shortcut' + (item.primary ? ' shortcut-primary' : '')} href={item.href}>
+        <span>{item.label}</span><span className="shortcut-arrow" aria-hidden="true">↗</span>
+      </a>)}
+    </nav>
+
+    <section id="sobre" className="wrap section about-grid">
+      <div>
+        <p className="eyebrow">Sobre a corrida</p>
+        <h2>Um encontro.<br />Muitos laços.</h2>
+      </div>
+      <div className="stack about-copy">
+        <p>A Corrida dos Guimarães chega à segunda edição celebrando a família, a união e as pessoas que nos inspiram a seguir em frente.</p>
+        <p>Em 11 de abril de 2027, nossos laços ganham movimento em um percurso de 5 km no Residencial Parque Irmãos Platon, em Macapá.</p>
+        <div className="dedication">
+          <h3>Por quem você vai correr?</h3>
+          <p>Na inscrição, você pode dedicar seus 5 km a alguém especial.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="percurso" className="section route-section">
+      <div className="wrap route-grid">
+        <div><p className="eyebrow">Percurso</p><h2>5 km para<br />criar memórias.</h2></div>
+        <div className="route-info">
+          <p className="route-distance">5 <span>km</span></p>
+          <p className="route-type">Percurso contínuo</p>
+          <p>Residencial Parque Irmãos Platon<br />Macapá · Amapá</p>
+          <p className="muted">O mapa oficial e os pontos de largada e chegada serão divulgados aqui.</p>
+        </div>
+      </div>
+    </section>
+
     <section id="inscricao" className="wrap section two">
-      <div><p className="eyebrow">Inscrições</p><h2>Por quem você vai correr?</h2>
-        {race?.closes_at && <p>Inscrições até {new Intl.DateTimeFormat('pt-BR', {
-          dateStyle: 'long', timeZone: 'America/Sao_Paulo',
-        }).format(new Date(Date.parse(race.closes_at) - 1))}.</p>}
-        <p>Se quiser, dedique seus 5 km a alguém e registre a homenagem na sua inscrição.</p></div>
-      <div className="panel">
+      <div className="section-intro">
+        <p className="eyebrow">Inscrições</p><h2>Venha fazer<br />parte dessa história.</h2>
+        {closingDate && <p>Inscrições até <strong>{closingDate}</strong>, conforme disponibilidade de vagas.</p>}
+        <a className="text-link" href="/acompanhar">Já se inscreveu? Acompanhe aqui ↗</a>
+      </div>
+      <div className="panel registration-panel">
         {Object.hasOwn(errors, erro) && <p className="notice" role="alert">{errors[erro]}</p>}
         {open ? <form action={register} className="stack">
-          <h3>Inscrição individual <small>{money(race.price_cents)}</small></h3>
+          <div className="registration-heading"><h3>Inscrição individual</h3><strong className="price">{money(race.price_cents)}</strong></div>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="key" value={registrationPath(id).split('=')[1]} />
           <input type="hidden" name="regulation" value={race.regulation} />
@@ -50,10 +104,37 @@ export default async function Page({ searchParams }) {
             <option value="" disabled>Selecione</option>{shirts.map(shirt => <option key={shirt}>{shirt}</option>)}
           </select></label>
           <label>Dedico meus 5 km a… <span className="muted">(opcional)</span><input name="dedication" maxLength={100} /></label>
-          <details><summary>Leia o regulamento</summary><div className="rules">{race.regulation}</div></details>
-          <label className="check"><input type="checkbox" name="accept" required /> Li e aceito o regulamento.</label>
-          <button className="button">Reservar vaga</button>
+          <label className="check"><input type="checkbox" name="accept" required />
+            <span>Li e aceito o <a href="#regulamento">regulamento da corrida</a>.</span>
+          </label>
+          <button className="button">Reservar minha vaga <span aria-hidden="true">↗</span></button>
         </form> : <><h3>Inscrições fechadas</h3><p>A abertura será divulgada pela organização da corrida.</p></>}
+      </div>
+    </section>
+
+    <section id="regulamento" className="wrap section rule-section">
+      <div className="section-heading"><p className="eyebrow">Antes de se inscrever</p><h2>Regulamento</h2></div>
+      <div className="panel">
+        {race?.regulation ? <div className="regulation-text">{race.regulation}</div>
+          : <p>O regulamento será disponibilizado aqui pela organização.</p>}
+      </div>
+    </section>
+
+    <section id="duvidas" className="wrap section faq-section">
+      <div className="section-heading"><p className="eyebrow">Tudo pronto para correr?</p><h2>Dúvidas frequentes</h2></div>
+      <div className="faq-list">
+        <details><summary>Como acompanho minha inscrição?</summary>
+          <p>Use <a href="/acompanhar">Acompanhar inscrição</a> para receber seu link por e-mail ou abrir o link que você guardou após o cadastro.</p>
+        </details>
+        <details><summary>Quando minha inscrição é confirmada?</summary>
+          <p>Após a aprovação do pagamento pelo Mercado Pago. A página da inscrição é atualizada automaticamente quando a confirmação é recebida.</p>
+        </details>
+        <details><summary>Como funciona a dedicatória dos 5 km?</summary>
+          <p>O campo é opcional. Você pode informar o nome de alguém a quem deseja dedicar sua corrida.</p>
+        </details>
+        <details><summary>Onde e quando retiro meu kit?</summary>
+          <p>As informações sobre data, horário e local da retirada serão divulgadas pela organização.</p>
+        </details>
       </div>
     </section>
   </>;

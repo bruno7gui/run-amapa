@@ -199,38 +199,69 @@ async function sendConfirmation(row) {
     ].join('\n\n'),
   };
   try {
-    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      const { default: nodemailer } = await import('nodemailer');
-      const transport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-        connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 10000,
-      });
-      const sent = await transport.sendMail({
-        ...email,
-        from: { name: 'Corrida dos Guimarães', address: process.env.GMAIL_USER },
-        messageId: '<inscricao-' + row.id + '@' + new URL(site()).hostname + '>',
-        disableFileAccess: true, disableUrlAccess: true,
-      });
-      if (!sent.accepted?.length) throw new Error('O provedor recusou o e-mail');
-    } else {
-      const sent = await jsonRequest('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + process.env.RESEND_API_KEY,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': 'confirm-' + row.id,
-        },
-        body: JSON.stringify({ ...email, from: process.env.CONFIRMATION_FROM, to: [row.email] }),
-      });
-      if (!sent?.id) throw new Error('O provedor não confirmou o envio');
-    }
+    await deliverEmail(email, 'confirm-' + row.id);
     await db('pilot_registrations?id=eq.' + row.id, {
       method: 'PATCH', body: { email_sent: true, confirmation_claimed_at: null },
     });
   } catch (error) {
     await db('pilot_registrations?id=eq.' + row.id, {
       method: 'PATCH', body: { confirmation_claimed_at: null },
+    });
+    throw error;
+  }
+}
+
+async function deliverEmail(email, idempotencyKey) {
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    const { default: nodemailer } = await import('nodemailer');
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+      connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 10000,
+    });
+    const sent = await transport.sendMail({
+      ...email,
+      from: { name: 'Corrida dos Guimarães', address: process.env.GMAIL_USER },
+      messageId: '<' + idempotencyKey + '@' + new URL(site()).hostname + '>',
+      disableFileAccess: true, disableUrlAccess: true,
+    });
+    if (!sent.accepted?.length) throw new Error('O provedor recusou o e-mail');
+  } else {
+    const sent = await jsonRequest('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + process.env.RESEND_API_KEY,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': idempotencyKey,
+      },
+      body: JSON.stringify({ ...email, from: process.env.CONFIRMATION_FROM, to: [email.to] }),
+    });
+    if (!sent?.id) throw new Error('O provedor não confirmou o envio');
+  }
+}
+
+export async function sendAccessLink(email) {
+  if (!emailConfigured()) throw new Error('Envio indisponível');
+  const row = await db('rpc/pilot_claim_access_link', {
+    method: 'POST', body: { athlete_email: email },
+  });
+  if (!row) return;
+  const url = new URL(registrationPath(row.id), site()).href;
+  try {
+    await deliverEmail({
+      to: row.email,
+      subject: 'Acompanhe sua inscrição | ' + title,
+      text: [
+        'Olá, ' + row.name + '!',
+        'Acesse o link abaixo para acompanhar sua inscrição na ' + title + '.',
+        url,
+        'Você poderá consultar o pagamento e o comprovante da inscrição nesta página.',
+        'Se você não solicitou este acesso, pode ignorar esta mensagem.',
+      ].join('\n\n'),
+    }, 'access-' + row.id + '-' + Date.parse(row.access_link_requested_at));
+  } catch (error) {
+    await db('pilot_registrations?id=eq.' + row.id, {
+      method: 'PATCH', body: { access_link_requested_at: null },
     });
     throw error;
   }

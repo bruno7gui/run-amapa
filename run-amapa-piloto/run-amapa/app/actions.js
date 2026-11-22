@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { admin, authCookie, canRegister, createOrder, db, isId, login, reconcile,
-  registrationPath, settings, validRegistration } from '../lib/server';
+  registrationPath, sendAccessLink, settings, site, validRegistration } from '../lib/server';
 import { shirts } from '../lib/race';
 
 const value = (form, field) => String(form.get(field) || '').trim();
@@ -112,4 +112,33 @@ export async function refreshPayment(form) {
     catch { redirect('/equipe?erro=sincronizar'); }
   }
   revalidatePath('/equipe');
+}
+
+export async function recoverRegistration(form) {
+  const email = value(form, 'email').toLowerCase();
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    redirect('/acompanhar?erro=email');
+  }
+  try {
+    await sendAccessLink(email);
+  } catch {
+    redirect('/acompanhar?erro=envio');
+  }
+  redirect('/acompanhar?enviado=1');
+}
+
+export async function openRegistration(form) {
+  let destination;
+  try {
+    const url = new URL(value(form, 'link'), site());
+    const id = url.pathname.match(/^\/inscricao\/([^/]+)$/)?.[1];
+    const key = url.searchParams.get('chave');
+    if (url.origin !== new URL(site()).origin || !validRegistration(id, key)) {
+      throw new Error('Link inválido');
+    }
+    destination = registrationPath(id);
+  } catch {
+    redirect('/acompanhar?erro=link');
+  }
+  redirect(destination);
 }
