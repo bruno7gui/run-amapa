@@ -9,7 +9,7 @@ a { color:var(--accent); text-underline-offset:.22em; }
 .top-inner { min-height:82px; }
 .brand { color:var(--ink); display:inline-flex; align-items:center; gap:.65rem; font-size:.75rem; font-weight:700; letter-spacing:.06em; text-decoration:none; line-height:1.4; }
 .brand strong { display:block; color:var(--accent); font-size:.95rem; }
-.emblem { display:block; flex-shrink:0; width:280px; height:auto; aspect-ratio:1; object-fit:contain; }
+.emblem { display:block; flex-shrink:0; width:280px; height:auto; aspect-ratio:1; object-fit:contain; border-radius:50%; }
 .emblem-small { width:52px; }
 .header-links { display:flex; gap:1.7rem; font-size:.75rem; }
 .header-links a { color:var(--ink); text-decoration:none; }
