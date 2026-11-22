@@ -89,7 +89,7 @@ export default async function Page({ searchParams }) {
       <div className="section-intro">
         <p className="eyebrow">Inscrições</p><h2>Venha fazer<br />parte dessa história.</h2>
         {closingDate && <p>Inscrições até <strong>{closingDate}</strong>, conforme disponibilidade de vagas.</p>}
-        <a className="text-link" href="/acompanhar">Já se inscreveu? Acompanhe aqui ↗</a>
+        <a className="text-link" href="/acompanhar">Já se inscreveu? Acompanhe aqui</a>
       </div>
       <div className="panel registration-panel">
         {Object.hasOwn(errors, erro) && <p className="notice" role="alert">{errors[erro]}</p>}
@@ -107,7 +107,7 @@ export default async function Page({ searchParams }) {
           <label className="check"><input type="checkbox" name="accept" required />
             <span>Li e aceito o <a href="#regulamento">regulamento da corrida</a>.</span>
           </label>
-          <button className="button">Reservar minha vaga <span aria-hidden="true">↗</span></button>
+          <button className="button">Reservar minha vaga <span className="shortcut-arrow" aria-hidden="true" /></button>
         </form> : <><h3>Inscrições fechadas</h3><p>A abertura será divulgada pela organização da corrida.</p></>}
       </div>
     </section>

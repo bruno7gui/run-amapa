@@ -9,14 +9,14 @@ a { color:var(--accent); text-underline-offset:.22em; }
 .top-inner { min-height:82px; }
 .brand { color:var(--ink); display:inline-flex; align-items:center; gap:.65rem; font-size:.75rem; font-weight:700; letter-spacing:.06em; text-decoration:none; line-height:1.4; }
 .brand strong { display:block; color:var(--accent); font-size:.95rem; }
-.emblem { --emblem-scale:1; display:block; flex-shrink:0; width:calc(132px * var(--emblem-scale)); height:calc(145px * var(--emblem-scale)); background-image:url('/images/corrida-guimaraes.webp'); background-repeat:no-repeat; background-size:calc(1122px * var(--emblem-scale)) calc(1402px * var(--emblem-scale)); background-position:calc(-970px * var(--emblem-scale)) calc(-20px * var(--emblem-scale)); }
+.emblem { --emblem-scale:1; display:block; flex-shrink:0; width:calc(132px * var(--emblem-scale)); height:calc(145px * var(--emblem-scale)); background-image:url('/images/corrida-guimaraes.webp'); background-repeat:no-repeat; background-size:calc(1122px * var(--emblem-scale)) calc(1402px * var(--emblem-scale)); background-position:calc(-970px * var(--emblem-scale)) calc(-20px * var(--emblem-scale)); clip-path:ellipse(45% 44% at 48% 50%); }
 .emblem-small { --emblem-scale:.36; }
 .header-links { display:flex; gap:1.7rem; font-size:.75rem; }
 .header-links a { color:var(--ink); text-decoration:none; }
 .header-links .team-link { color:var(--muted); }
-.hero { position:relative; overflow:hidden; background:radial-gradient(ellipse at 70% 10%,#313134 0%,#121214 66%); }
-.hero::before { content:''; position:absolute; inset:auto 0 0; height:62%; background-image:url('/images/corrida-guimaraes.webp'); background-size:100% auto; background-position:center bottom; background-repeat:no-repeat; opacity:.9; pointer-events:none; }
-.hero-inner { position:relative; padding:4.2rem 0 5.5rem; }
+.hero { position:relative; overflow:hidden; background:#101012; }
+.hero::before { content:''; position:absolute; inset:auto 0 0; height:62%; background-image:linear-gradient(180deg,#101012,transparent 50%),url('/images/corrida-guimaraes.webp'); background-size:100% 100%,100% auto; background-position:center,center bottom; background-repeat:no-repeat; opacity:.9; pointer-events:none; }
+.hero-inner { position:relative; padding:4.2rem 0 8rem; }
 .hero-heading { display:flex; align-items:center; justify-content:space-between; gap:2rem; }
 .emblem-hero { --emblem-scale:1.5; margin-right:1.2rem; }
 h1,h2,h3,p { margin:0; }
@@ -33,7 +33,9 @@ h3 { font-size:1.15rem; line-height:1.4; }
 .shortcuts { position:relative; margin-top:-1.35rem; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; }
 .shortcut { display:flex; align-items:center; justify-content:space-between; gap:.65rem; min-height:82px; padding:1.1rem 1.4rem; color:var(--ink); background:linear-gradient(140deg,#242426,#19191b); border:1px solid #414145; border-radius:.6rem; text-decoration:none; font-size:.9rem; font-weight:600; transition:border-color .18s,transform .18s; }
 .shortcut:hover { border-color:var(--accent); transform:translateY(-2px); }
-.shortcut-arrow { color:var(--accent); font-size:1.35rem; }
+.shortcut-arrow { color:var(--accent); font-size:0; width:15px; height:15px; position:relative; flex-shrink:0; }
+.shortcut-arrow::before { content:''; position:absolute; width:10px; height:10px; top:0; right:0; border-top:1.5px solid currentColor; border-right:1.5px solid currentColor; }
+.shortcut-arrow::after { content:''; position:absolute; width:17px; height:1.5px; background:currentColor; top:6px; left:0; transform:rotate(-45deg); }
 .shortcut-primary { color:#18100a; background:var(--accent); border-color:var(--accent); font-weight:800; }
 .shortcut-primary .shortcut-arrow { color:inherit; }
 .button { display:inline-flex; align-items:center; justify-content:center; gap:1.5rem; min-height:50px; padding:.8rem 1.25rem; border:0; border-radius:.4rem; background:var(--accent); color:#1c1208; text-decoration:none; font-weight:800; width:fit-content; }
@@ -95,7 +97,7 @@ dt { font-size:.75rem; color:var(--muted); margin-top:.7rem; }
 dd { margin:0; font-weight:600; }
 @media(max-width:760px) {
   .wrap { width:calc(100% - 2rem); }
-  .hero-inner { padding:2.8rem 0 4.5rem; }
+  .hero-inner { padding:2.8rem 0 6.5rem; }
   .emblem-hero { display:none; }
   .hero h1 { font-size:clamp(2.5rem,9.1vw,4.6rem); }
   .hero .eyebrow { font-size:.65rem; }
@@ -105,7 +107,7 @@ dd { margin:0; font-weight:600; }
   .brand strong { font-size:.76rem; }
   .shortcuts { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.55rem; }
   .shortcut { min-height:78px; font-size:.77rem; padding:.85rem; gap:.4rem; }
-  .shortcut-arrow { font-size:1.15rem; }
+
   .facts { gap:.8rem 1.5rem; margin-top:1.7rem; }
   .facts strong { font-size:.76rem; }
   .facts > div:last-child { flex-basis:100%; }
