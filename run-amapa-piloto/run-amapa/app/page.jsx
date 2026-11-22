@@ -121,12 +121,8 @@ export default async function Page({ searchParams }) {
             <option value="" disabled>Selecione</option>{shirts.map(shirt => <option key={shirt}>{shirt}</option>)}
           </select></label>
           <DedicationField />
-          <section className="consent-text" aria-labelledby="responsibility-heading">
-            <h3 id="responsibility-heading">Termo de responsabilidade e autorização de imagem</h3>
-            <div className="regulation-text">{race.responsibility_terms}</div>
-          </section>
           <label className="check"><input type="checkbox" name="accept" required />
-            <span>Li e concordo com o termo de responsabilidade e autorização de imagem acima e com o <a href="#regulamento">regulamento da 2ª Corrida dos Guimarães</a>.</span>
+            <span>Li e concordo com o <a href="/termo" target="_blank" rel="noopener noreferrer">Termo de responsabilidade e autorização de imagem (abrir para leitura)</a> e com o <a href="#regulamento">regulamento da 2ª Corrida dos Guimarães</a>.</span>
           </label>
           <button className="button">Reservar minha vaga <span className="shortcut-arrow" aria-hidden="true" /></button>
         </form> : <><h3>Inscrições fechadas</h3><p>A abertura será divulgada pela organização da corrida.</p></>}
