@@ -41,7 +41,6 @@ export default async function Page({ searchParams }) {
       <div className="wrap hero-inner">
         <div className="hero-heading">
           <div>
-            <p className="eyebrow">2ª edição · {raceDate.label} · data prevista</p>
             <h1><span className="title-intro">Corrida dos</span>Guimarães</h1>
             <p className="theme">Laços que nos movem</p>
           </div>
@@ -54,6 +53,8 @@ export default async function Page({ searchParams }) {
           </a>)}
         </nav>
         <div className="facts">
+          <div><span>Edição</span><strong>2ª edição</strong></div>
+          <div><span>Data prevista</span><strong>{raceDate.label}</strong></div>
           <div><span>Distância</span><strong>5 km</strong></div>
           <div><span>Cidade</span><strong>Macapá · AP</strong></div>
           <div><span>Local</span><strong>Residencial Parque Irmãos Platon</strong></div>
